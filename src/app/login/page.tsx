@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import { AmigoLogo } from "@/components/AmigoLogo";
+import { AppHeader } from "@/components/AppHeader";
 import { validateEmailFormat } from "@/lib/validation";
 
 export default function LoginPage() {
@@ -92,20 +93,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFBFA]">
-      <header className="w-full bg-[#4A85F6] text-white px-6 py-2.5 flex items-center justify-between text-xs sm:text-sm select-none shadow-sm">
-        <span className="font-normal tracking-wide">
-          Instituto - Sistema de gestión de laboratorios
-        </span>
-        <span className="font-normal tracking-wide">
-          Facultad de Ingeniería
-        </span>
-      </header>
+    <div className="min-h-screen flex flex-col bg-amigo-bg">
+      <AppHeader />
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-[450px] bg-white border border-[#E5E7EB] rounded-2xl p-8 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col items-center">
+        <div className="w-full max-w-[450px] bg-white border border-gray-200 rounded-2xl p-8 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col items-center">
           
-          <h1 className="text-xl font-bold tracking-wider text-[#1E293B] mb-2">
+          <h1 className="text-xl font-bold tracking-wider text-amigo-dark mb-2">
             AMGO
           </h1>
 
@@ -211,7 +205,7 @@ export default function LoginPage() {
 
               <Link
                 href="/recuperar-contrasena"
-                className="text-[#3B82F6] hover:text-blue-700 hover:underline transition-colors"
+                className="text-amigo-blue hover:underline transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -220,7 +214,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#85B4F2] hover:bg-[#6FA2EA] active:bg-[#5C94E5] text-white font-medium text-sm transition-all duration-150 flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full mt-2 py-2.5 px-4 rounded-lg bg-amigo-btn hover:bg-amigo-btnHover active:bg-amigo-btnActive text-white font-medium text-sm transition-all duration-150 flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
