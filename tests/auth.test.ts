@@ -1,12 +1,12 @@
 import {
-  validateEmailFormat,
   hashPassword,
   verifyPassword,
   generateToken,
   verifyToken,
-  UserPayload,
   getJwtSecret,
 } from "../src/lib/auth";
+import type { UserPayload } from "../src/lib/types";
+import { validateEmailFormat } from "../src/lib/validation";
 import jwt from "jsonwebtoken";
 import { findUserByEmail } from "../src/lib/users";
 import { POST } from "../src/app/api/auth/login/route";

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { AmigoLogo } from "@/components/AmigoLogo";
 import { ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
-import { validateEmailFormat } from "@/lib/auth";
+import { validateEmailFormat } from "@/lib/validation";
 
 export default function RecuperarContrasenaPage() {
   const [email, setEmail] = useState("");

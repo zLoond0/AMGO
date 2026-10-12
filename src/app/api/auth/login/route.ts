@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateEmailFormat, verifyPassword, generateToken, UserPayload } from "@/lib/auth";
+import { verifyPassword, generateToken } from "@/lib/auth";
+import type { UserPayload } from "@/lib/types";
+import { validateEmailFormat, PASSWORD_MAX_LENGTH } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/users";
 import bcrypt from "bcryptjs";
 
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Previene ataques de denegacion de servicio por hashes excesivos en CPU
-    if (password.length > 128) {
+    if (password.length > PASSWORD_MAX_LENGTH) {
       return NextResponse.json(
         { success: false, message: "Credenciales incorrectas" },
         { status: 401 }

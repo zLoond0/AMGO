@@ -5,12 +5,7 @@ import { useRouter } from "next/navigation";
 import { AmigoLogo } from "@/components/AmigoLogo";
 import { LogOut, User, ShieldCheck, CheckCircle2 } from "lucide-react";
 
-interface UserData {
-  id: string;
-  email: string;
-  nombre: string;
-  rol: "Docente" | "Coordinador" | "Administrador";
-}
+import type { UserData } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();

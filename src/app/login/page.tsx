@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import { AmigoLogo } from "@/components/AmigoLogo";
+import { validateEmailFormat } from "@/lib/validation";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,11 +32,8 @@ export default function LoginPage() {
 
     if (!email.trim()) {
       newErrors.email = "El correo institucional es obligatorio";
-    } else {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(email.trim())) {
-        newErrors.email = "Ingresa un formato de correo válido (ej. usuario@amigo.edu.co)";
-      }
+    } else if (!validateEmailFormat(email)) {
+      newErrors.email = "Ingresa un formato de correo válido (ej. usuario@amigo.edu.co)";
     }
 
     if (!password) {

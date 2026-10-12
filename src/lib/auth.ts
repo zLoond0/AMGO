@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import type { UserPayload } from "@/lib/types";
+import { PASSWORD_MAX_LENGTH } from "@/lib/validation";
 
 const JWT_ALGORITHM = "HS256";
 const JWT_SECRET_MIN_LENGTH = 32;
@@ -17,21 +19,6 @@ export function getJwtSecret(): string {
   return secret;
 }
 
-export interface UserPayload {
-  id: string;
-  email: string;
-  nombre: string;
-  rol: "Docente" | "Coordinador" | "Administrador";
-}
-
-export function validateEmailFormat(email: string): boolean {
-  if (!email || typeof email !== "string") return false;
-  // RFC 5321 limita la longitud del correo a 254 caracteres para prevenir ataques ReDoS
-  if (email.length > 254) return false;
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return emailRegex.test(email.trim());
-}
-
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
@@ -39,7 +26,7 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   // Limita contraseñas excesivas para prevenir sobrecarga de CPU en el hashing de bcrypt
-  if (!password || password.length > 128) return false;
+  if (!password || password.length > PASSWORD_MAX_LENGTH) return false;
   return bcrypt.compare(password, hash);
 }
 
