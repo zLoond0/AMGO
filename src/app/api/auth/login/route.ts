@@ -3,6 +3,7 @@ import { verifyPassword, generateToken, getAuthCookieOptions, AUTH_COOKIE_NAME }
 import type { UserPayload } from "@/lib/types";
 import { validateEmailFormat, PASSWORD_MAX_LENGTH } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/users";
+import { loginRateLimiter, loginRateLimitKey } from "@/lib/rate-limit";
 import bcrypt from "bcryptjs";
 
 // Hash dummy para mitigar ataques de temporizacion (timing attacks) cuando el usuario no existe
@@ -36,14 +37,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Previene ataques de denegacion de servicio por hashes excesivos en CPU
-    if (password.length > PASSWORD_MAX_LENGTH) {
-      return NextResponse.json(
-        { success: false, message: "Credenciales incorrectas" },
-        { status: 401 }
-      );
-    }
-
     if (!validateEmailFormat(email)) {
       return NextResponse.json(
         { success: false, message: "El formato del correo electrónico no es válido" },
@@ -51,25 +44,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Limite de intentos fallidos por IP + correo. Se consulta antes de bcrypt para que un
+    // atacante bloqueado no consuma CPU del servidor.
+    const rateKey = loginRateLimitKey(request, email);
+    const rateStatus = loginRateLimiter.check(rateKey);
+    if (rateStatus.limited) {
+      return NextResponse.json(
+        { success: false, message: "Demasiados intentos. Intente de nuevo más tarde." },
+        { status: 429, headers: { "Retry-After": String(rateStatus.retryAfterSeconds) } }
+      );
+    }
+
+    const invalidCredentials = () => {
+      loginRateLimiter.recordFailure(rateKey);
+      return NextResponse.json(
+        { success: false, message: "Credenciales incorrectas" },
+        { status: 401 }
+      );
+    };
+
+    // Previene ataques de denegacion de servicio por hashes excesivos en CPU
+    if (password.length > PASSWORD_MAX_LENGTH) {
+      return invalidCredentials();
+    }
+
     const user = findUserByEmail(email);
 
     if (!user) {
       // Ejecuta verificacion dummy para que el tiempo de respuesta sea uniforme
       await bcrypt.compare(password, DUMMY_HASH);
-      return NextResponse.json(
-        { success: false, message: "Credenciales incorrectas" },
-        { status: 401 }
-      );
+      return invalidCredentials();
     }
 
     const isPasswordValid = await verifyPassword(password, user.passwordHash);
 
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { success: false, message: "Credenciales incorrectas" },
-        { status: 401 }
-      );
+      return invalidCredentials();
     }
+
+    // Un login exitoso reinicia el contador de esta combinacion IP + correo
+    loginRateLimiter.reset(rateKey);
 
     const payload: UserPayload = {
       id: user.id,
