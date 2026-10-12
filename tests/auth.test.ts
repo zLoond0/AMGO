@@ -5,7 +5,9 @@ import {
   generateToken,
   verifyToken,
   UserPayload,
+  getJwtSecret,
 } from "../src/lib/auth";
+import jwt from "jsonwebtoken";
 import { findUserByEmail } from "../src/lib/users";
 import { POST } from "../src/app/api/auth/login/route";
 
@@ -81,6 +83,40 @@ describe("3. Generación y Validación de Token JWT / Sesión", () => {
   test("Debe retornar null al verificar un token inválido", () => {
     const decoded = verifyToken("token_invalido_totalmente_falso");
     expect(decoded).toBeNull();
+  });
+});
+
+describe("3b. Configuración del secreto JWT y algoritmo", () => {
+  const mockUser: UserPayload = {
+    id: "usr_001",
+    email: "docente@amigo.edu.co",
+    nombre: "Prof. Carlos Restrepo",
+    rol: "Docente",
+  };
+  const originalSecret = process.env.JWT_SECRET;
+
+  afterEach(() => {
+    process.env.JWT_SECRET = originalSecret;
+  });
+
+  test("Debe lanzar un error claro si falta JWT_SECRET", () => {
+    delete process.env.JWT_SECRET;
+    expect(() => getJwtSecret()).toThrow(/JWT_SECRET/);
+    expect(() => generateToken(mockUser)).toThrow(/JWT_SECRET/);
+  });
+
+  test("Debe lanzar un error si JWT_SECRET tiene menos de 32 caracteres", () => {
+    process.env.JWT_SECRET = "corto";
+    expect(() => getJwtSecret()).toThrow(/32 caracteres/);
+  });
+
+  test("Debe firmar con HS256 y rechazar tokens firmados con otro algoritmo", () => {
+    const token = generateToken(mockUser);
+    const header = JSON.parse(Buffer.from(token.split(".")[0], "base64url").toString());
+    expect(header.alg).toBe("HS256");
+
+    const hs512 = jwt.sign(mockUser, process.env.JWT_SECRET as string, { algorithm: "HS512" });
+    expect(verifyToken(hs512)).toBeNull();
   });
 });
 
