@@ -1,0 +1,54 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  nombre       String
+  rol          String    @default("Docente")
+  reservas     Reserva[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Recurso {
+  id          String    @id @default(cuid())
+  nombre      String    @unique
+  descripcion String?
+  activo      Boolean   @default(true)
+  reservas    Reserva[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("recursos")
+}
+
+model Reserva {
+  id        String    @id @default(cuid())
+  recursoId String    @map("recurso_id")
+  usuarioId String    @map("usuario_id")
+  inicio    DateTime
+  fin       DateTime
+  tipo      String
+  estado    String    @default("RETENIDA")
+  expiraEn  DateTime? @map("expira_en")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  recurso Recurso @relation(fields: [recursoId], references: [id], onDelete: Cascade)
+  usuario User    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([recursoId, inicio, fin])
+  @@index([usuarioId])
+  @@index([estado])
+  @@map("reservas")
+}
