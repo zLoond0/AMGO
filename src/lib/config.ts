@@ -94,8 +94,12 @@ export function obtenerComponentesBogota(date: Date): BogotaDateParts {
  * @param fechaYMD Formato "YYYY-MM-DD"
  * @param horaHM Formato "HH:mm"
  */
-export function crearFechaBogota(fechaYMD: string, horaHM: string): Date {
-  return new Date(`${fechaYMD}T${horaHM}:00.000-05:00`);
+export function crearFechaBogota(fechaYMD: string, horaHMS: string): Date {
+  const parts = horaHMS.split(":");
+  const h = (parts[0] || "00").padStart(2, "0");
+  const m = (parts[1] || "00").padStart(2, "0");
+  const s = (parts[2] || "00").padStart(2, "0");
+  return new Date(`${fechaYMD}T${h}:${m}:${s}.000-05:00`);
 }
 
 export type ValidacionInicioResultado =
