@@ -1,6 +1,5 @@
 import bcrypt from "bcryptjs";
-
-export type RoleType = "Docente" | "Coordinador" | "Administrador";
+import type { RoleType } from "@/lib/types";
 
 export interface User {
   id: string;
@@ -47,11 +46,4 @@ export const usersDatabase: User[] = [
 export function findUserByEmail(email: string): User | undefined {
   const normalized = email.trim().toLowerCase();
   return usersDatabase.find((u) => u.email.toLowerCase() === normalized);
-}
-
-export function inferRoleFromEmail(email: string): RoleType {
-  const lower = email.toLowerCase();
-  if (lower.includes("admin")) return "Administrador";
-  if (lower.includes("coordinador") || lower.includes("coord")) return "Coordinador";
-  return "Docente";
 }

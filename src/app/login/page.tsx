@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import { AmigoLogo } from "@/components/AmigoLogo";
+import { AppHeader } from "@/components/AppHeader";
+import { validateEmailFormat } from "@/lib/validation";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,11 +21,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Redirige automaticamente si ya existe una sesion activa en el navegador
-    const savedToken = localStorage.getItem("amgo_token") || sessionStorage.getItem("amgo_token");
-    if (savedToken) {
-      router.push("/dashboard");
-    }
+    // Redirige al panel si ya existe una sesion valida (la cookie httpOnly no es legible desde JS)
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((response) => {
+        if (!cancelled && response.ok) router.replace("/dashboard");
+      })
+      .catch(() => {
+        // Sin conexion: se muestra el formulario normalmente
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const validateForm = (): boolean => {
@@ -31,11 +40,8 @@ export default function LoginPage() {
 
     if (!email.trim()) {
       newErrors.email = "El correo institucional es obligatorio";
-    } else {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(email.trim())) {
-        newErrors.email = "Ingresa un formato de correo válido (ej. usuario@amigo.edu.co)";
-      }
+    } else if (!validateEmailFormat(email)) {
+      newErrors.email = "Ingresa un formato de correo válido (ej. usuario@amigo.edu.co)";
     }
 
     if (!password) {
@@ -77,20 +83,9 @@ export default function LoginPage() {
         return;
       }
 
-      // Almacena de forma persistente o temporal segun la preferencia del usuario
-      if (rememberMe) {
-        localStorage.setItem("amgo_token", data.token);
-        localStorage.setItem("amgo_user", JSON.stringify(data.user));
-        sessionStorage.removeItem("amgo_token");
-        sessionStorage.removeItem("amgo_user");
-      } else {
-        sessionStorage.setItem("amgo_token", data.token);
-        sessionStorage.setItem("amgo_user", JSON.stringify(data.user));
-        localStorage.removeItem("amgo_token");
-        localStorage.removeItem("amgo_user");
-      }
-
+      // El servidor ya fijo la cookie httpOnly de sesion; no se guarda nada en el navegador
       router.push("/dashboard");
+      router.refresh();
     } catch {
       setGeneralError("Error de conexión con el servidor. Intente más tarde.");
       setIsLoading(false);
@@ -98,20 +93,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFBFA]">
-      <header className="w-full bg-[#4A85F6] text-white px-6 py-2.5 flex items-center justify-between text-xs sm:text-sm select-none shadow-sm">
-        <span className="font-normal tracking-wide">
-          Instituto - Sistema de gestión de laboratorios
-        </span>
-        <span className="font-normal tracking-wide">
-          Facultad de Ingeniería
-        </span>
-      </header>
+    <div className="min-h-screen flex flex-col bg-amigo-bg">
+      <AppHeader />
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-[450px] bg-white border border-[#E5E7EB] rounded-2xl p-8 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col items-center">
+        <div className="w-full max-w-[450px] bg-white border border-gray-200 rounded-2xl p-8 sm:p-10 shadow-[0_4px_25px_rgba(0,0,0,0.03)] flex flex-col items-center">
           
-          <h1 className="text-xl font-bold tracking-wider text-[#1E293B] mb-2">
+          <h1 className="text-xl font-bold tracking-wider text-amigo-dark mb-2">
             AMGO
           </h1>
 
@@ -217,7 +205,7 @@ export default function LoginPage() {
 
               <Link
                 href="/recuperar-contrasena"
-                className="text-[#3B82F6] hover:text-blue-700 hover:underline transition-colors"
+                className="text-amigo-blue hover:underline transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -226,7 +214,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#85B4F2] hover:bg-[#6FA2EA] active:bg-[#5C94E5] text-white font-medium text-sm transition-all duration-150 flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full mt-2 py-2.5 px-4 rounded-lg bg-amigo-btn hover:bg-amigo-btnHover active:bg-amigo-btnActive text-white font-medium text-sm transition-all duration-150 flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

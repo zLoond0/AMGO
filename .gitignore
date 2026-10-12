@@ -1,2 +1,24 @@
+# Dependencias
 node_modules/
+
+# Next.js
 .next/
+out/
+
+# Variables de entorno (solo se versiona la plantilla)
+.env*
+!.env.example
+
+# Pruebas y cobertura
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
