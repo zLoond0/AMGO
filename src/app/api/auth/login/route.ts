@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyPassword, generateToken } from "@/lib/auth";
+import { verifyPassword, generateToken, getAuthCookieOptions, AUTH_COOKIE_NAME } from "@/lib/auth";
 import type { UserPayload } from "@/lib/types";
 import { validateEmailFormat, PASSWORD_MAX_LENGTH } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/users";
@@ -78,28 +78,21 @@ export async function POST(request: NextRequest) {
       rol: user.rol,
     };
 
-    const isRemember = Boolean(rememberMe);
+    // Solo un booleano true activa la persistencia (evita que el texto "false" cuente como verdadero)
+    const isRemember = rememberMe === true;
     const token = generateToken(payload, isRemember);
 
+    // El token viaja unicamente en la cookie httpOnly: nunca en el cuerpo de la respuesta
     const response = NextResponse.json(
       {
         success: true,
         message: "Inicio de sesión exitoso",
-        token,
         user: payload,
       },
       { status: 200 }
     );
 
-    // Configura cookie segura con vigencia condicionada al parametro de persistencia
-    const maxAge = isRemember ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
-    response.cookies.set("auth_token", token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge,
-    });
+    response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions(isRemember));
 
     return response;
   } catch (error) {

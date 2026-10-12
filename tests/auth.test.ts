@@ -202,7 +202,7 @@ describe("5. Pruebas de Integración - Endpoint POST /api/auth/login", () => {
     expect(data.message).toBe("Credenciales incorrectas");
   });
 
-  test("Debe responder 200 y retornar token JWT cuando las credenciales son correctas", async () => {
+  test("Debe responder 200 y fijar la cookie de sesión cuando las credenciales son correctas", async () => {
     const req = createMockRequest({
       email: "docente@amigo.edu.co",
       password: "Password123!",
@@ -213,7 +213,8 @@ describe("5. Pruebas de Integración - Endpoint POST /api/auth/login", () => {
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.token).toBeDefined();
+    expect(data.token).toBeUndefined();
+    expect(res.cookies.get("auth_token")?.value).toBeTruthy();
     expect(data.user).toBeDefined();
     expect(data.user.email).toBe("docente@amigo.edu.co");
     expect(data.user.rol).toBe("Docente");

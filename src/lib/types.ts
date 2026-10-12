@@ -1,6 +1,9 @@
-// Tipos compartidos entre cliente y servidor. Solo tipos: sin dependencias de Node.
+// Tipos compartidos entre cliente y servidor. Sin dependencias de Node.
 
-export type RoleType = "Docente" | "Coordinador" | "Administrador";
+// Unica fuente de verdad de los roles: el tipo RoleType se deriva de esta lista.
+export const ROLES = ["Docente", "Coordinador", "Administrador"] as const;
+
+export type RoleType = (typeof ROLES)[number];
 
 // Datos publicos del usuario autenticado (nunca incluye el hash de la contrasena).
 export interface UserData {
