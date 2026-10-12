@@ -20,11 +20,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Redirige automaticamente si ya existe una sesion activa en el navegador
-    const savedToken = localStorage.getItem("amgo_token") || sessionStorage.getItem("amgo_token");
-    if (savedToken) {
-      router.push("/dashboard");
-    }
+    // Redirige al panel si ya existe una sesion valida (la cookie httpOnly no es legible desde JS)
+    let cancelled = false;
+    fetch("/api/auth/me")
+      .then((response) => {
+        if (!cancelled && response.ok) router.replace("/dashboard");
+      })
+      .catch(() => {
+        // Sin conexion: se muestra el formulario normalmente
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   const validateForm = (): boolean => {
@@ -75,20 +82,9 @@ export default function LoginPage() {
         return;
       }
 
-      // Almacena de forma persistente o temporal segun la preferencia del usuario
-      if (rememberMe) {
-        localStorage.setItem("amgo_token", data.token);
-        localStorage.setItem("amgo_user", JSON.stringify(data.user));
-        sessionStorage.removeItem("amgo_token");
-        sessionStorage.removeItem("amgo_user");
-      } else {
-        sessionStorage.setItem("amgo_token", data.token);
-        sessionStorage.setItem("amgo_user", JSON.stringify(data.user));
-        localStorage.removeItem("amgo_token");
-        localStorage.removeItem("amgo_user");
-      }
-
+      // El servidor ya fijo la cookie httpOnly de sesion; no se guarda nada en el navegador
       router.push("/dashboard");
+      router.refresh();
     } catch {
       setGeneralError("Error de conexión con el servidor. Intente más tarde.");
       setIsLoading(false);
