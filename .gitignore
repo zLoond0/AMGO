@@ -22,3 +22,9 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Bases de datos locales SQLite
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
